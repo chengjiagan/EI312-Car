@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        car = new Car(this);
+        car = new Car(this);
 
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.CAMERA}, PERMISSIONS_REQUEST_CODE);
@@ -127,16 +127,6 @@ public class MainActivity extends AppCompatActivity {
 
         serverThread.setRunning(true);
         serverThread.start();
-
-        TextView textView = (TextView) findViewById(R.id.textView);
-
-        StringBuilder s = new StringBuilder();
-        UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-        for (UsbDevice device : deviceList.values()) {
-            s.append(String.format("product id: %s, vendor id: %d\n", device.getProductName(), device.getVendorId()));
-        }
-        textView.setText(s.toString());
     }
 
     @Override
