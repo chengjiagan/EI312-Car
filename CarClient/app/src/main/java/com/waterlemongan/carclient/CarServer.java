@@ -31,9 +31,9 @@ class CarServer {
     }
 
     public void closeVideo() {
+        new SendThread(address, "disconnectCamera\n").start();
         videoTask.setRunning(false);
         videoTask.cancel(false);
-        new SendThread(address, "disconnectCamera\n").start();
     }
 
     public void forward() {
@@ -103,8 +103,8 @@ class CarServer {
                 while (running) {
                     Socket s = serverSocket.accept();
                     Bitmap bmp = BitmapFactory.decodeStream(new BufferedInputStream(s.getInputStream()));
-
-                    publishProgress(bmp);
+                    if (bmp != null)
+                        publishProgress(bmp);
                     s.close();
                 }
             } catch (IOException e) {

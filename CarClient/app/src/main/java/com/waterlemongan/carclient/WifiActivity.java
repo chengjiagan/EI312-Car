@@ -37,30 +37,9 @@ public class WifiActivity extends AppCompatActivity {
     private WifiP2pManager.Channel channel;
     private List<WifiP2pDevice> deviceList;
 
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-                if (manager != null) {
-                    manager.requestPeers(channel, new WifiP2pManager.PeerListListener() {
-                        @Override
-                        public void onPeersAvailable(WifiP2pDeviceList peers) {
-                            deviceList.clear();
-                            deviceList.addAll(peers.getDeviceList());
-                            ((WiFiPeerListAdapter) listView.getAdapter()).notifyDataSetChanged();
-                            Log.d(TAG, "peers found: " + deviceList.size());
-                        }
-                    });
-                }
-            }
-        }
-    };
-
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
 
     public static final String TAG = "WifiActivity";
-    public static final String EXTRA_WIFI_DEVICE = "com.waterlemongan.carclient.WIFI_DEVICE";
     public static final String EXTRA_DEVICE_ADDRESS = "com.waterlemongan.carclient.DEVICE_ADDRESS";
 
     @Override
@@ -81,9 +60,6 @@ public class WifiActivity extends AppCompatActivity {
                 Log.d(TAG, "connect to device: " + device.deviceName);
 
                 connect(device);
-//                Intent intent = new Intent(WifiActivity.this, MainActivity.class);
-//                intent.putExtra(EXTRA_WIFI_DEVICE, device);
-//                startActivity(intent);
             }
         });
 
@@ -123,16 +99,35 @@ public class WifiActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(receiver, new IntentFilter(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION));
+    private void startDiscovery() {
+        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                if (manager != null) {
+                    manager.requestPeers(channel, new WifiP2pManager.PeerListListener() {
+                        @Override
+                        public void onPeersAvailable(WifiP2pDeviceList peers) {
+                            deviceList.clear();
+                            deviceList.addAll(peers.getDeviceList());
+                            ((WiFiPeerListAdapter) listView.getAdapter()).notifyDataSetChanged();
+                            Log.d(TAG, "peers found: " + deviceList.size());
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(TAG, "discovery failed" + reason);
+                Toast.makeText(WifiActivity.this, "Discovery Failed: " + reason, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
+    protected void onResume() {
+        super.onResume();
+        startDiscovery();
     }
 
     @Override
@@ -145,18 +140,7 @@ public class WifiActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.atn_wifi_search:
-                manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        // nothing to do
-                    }
-
-                    @Override
-                    public void onFailure(int reason) {
-                        Log.d(TAG, "discovery failed" + reason);
-                        Toast.makeText(WifiActivity.this, "Discovery Failed: " + reason, Toast.LENGTH_LONG).show();
-                    }
-                });
+                startDiscovery();
                 return true;
 
             default:

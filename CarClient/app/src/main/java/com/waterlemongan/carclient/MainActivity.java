@@ -29,10 +29,6 @@ import android.widget.Toast;
 import java.net.InetAddress;
 
 public class MainActivity extends AppCompatActivity {
-    private WifiP2pDevice device;
-    private WifiP2pManager manager;
-    private WifiP2pManager.Channel channel;
-    private WifiP2pConfig config;
     private CarServer carServer = null;
     private TextureView textureView;
 
@@ -43,43 +39,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        device = (WifiP2pDevice) getIntent().getParcelableExtra(WifiActivity.EXTRA_WIFI_DEVICE);
-//        Toast.makeText(this, "device: " + device.deviceName, Toast.LENGTH_LONG).show();
-//
-//        config = new WifiP2pConfig();
-//        config.deviceAddress = device.deviceAddress;
-//        config.groupOwnerIntent = 1;
-//        config.wps.setup = WpsInfo.PBC;
-//
-//        manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-//        channel = manager.initialize(this, getMainLooper(), null);
-//        manager.connect(channel, config, new WifiP2pManager.ActionListener() {
-//            @Override
-//            public void onSuccess() {
-//                manager.requestConnectionInfo(channel, new WifiP2pManager.ConnectionInfoListener() {
-//                    @Override
-//                    public void onConnectionInfoAvailable(WifiP2pInfo info) {
-//                        Toast.makeText(MainActivity.this, "Connect Successfully", Toast.LENGTH_LONG).show();
-//                        Log.d(TAG, "get car server address succeed");
-//                        carServer = new CarServer(info.groupOwnerAddress);
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            public void onFailure(int reason) {
-//                Toast.makeText(MainActivity.this, "Connect Failed: " + reason, Toast.LENGTH_LONG).show();
-//            }
-//        });
-
-        InetAddress address = getIntent().getParcelableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
+        InetAddress address = (InetAddress) getIntent().getSerializableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
+        Log.d(TAG, "device address: " + address.getHostAddress());
         carServer = new CarServer(address);
 
         initView();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+//        carServer.closeVideo();
+//        Log.d(TAG, "close video");
+    }
+
     private void initView() {
-        ImageButton up = (ImageButton) findViewById(R.id.upButton);
+        ImageButton up = findViewById(R.id.upButton);
         up.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -96,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ImageButton down = (ImageButton) findViewById(R.id.downButton);
+        ImageButton down = findViewById(R.id.downButton);
         down.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -113,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ImageButton left = (ImageButton) findViewById(R.id.leftButton);
+        ImageButton left = findViewById(R.id.leftButton);
         left.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -130,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ImageButton right = (ImageButton) findViewById(R.id.rightButtion);
+        ImageButton right = findViewById(R.id.rightButtion);
         right.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -147,10 +122,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        textureView = (TextureView) findViewById(R.id.textureView);
+        textureView = findViewById(R.id.textureView);
         textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                Log.d(TAG, "connect video");
                 carServer.connectVideo(new CarServer.VideoUpdateListener() {
                     @Override
                     public void onVideoUpdate(Bitmap bmp) {
@@ -170,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
                 carServer.closeVideo();
+                Log.d(TAG, "close video");
                 return false;
             }
 

@@ -1,8 +1,12 @@
 package com.waterlemongan.carserver;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -19,6 +23,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
@@ -31,13 +36,17 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private WifiP2pManager manager;
@@ -45,11 +54,10 @@ public class MainActivity extends AppCompatActivity {
     private ServerThread serverThread;
     private Car car;
     private Handler cameraHandler;
+    private VideoHandler videoHandler;
     private CameraDevice cameraDevice;
     private TextureView textureView;
     private CaptureRequest.Builder previewRequestBuilder;
-    private InetAddress clientAddress;
-    private boolean transferVideo = false;
     private ServerHandler handler = new ServerHandler(this);
 
     private static final int videoPort = 10002;
@@ -79,21 +87,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        car = new Car(this);
-
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.CAMERA}, PERMISSIONS_REQUEST_CODE);
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.CHANGE_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                    new String[] {Manifest.permission.CAMERA, Manifest.permission.CHANGE_NETWORK_STATE},
+                    PERMISSIONS_REQUEST_CODE);
         }
 
-        getSupportActionBar().hide();
-        textureView = (TextureView) findViewById(R.id.textureView);
+        textureView = findViewById(R.id.textureView);
         textureView.setKeepScreenOn(true);
-        textureView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -116,9 +118,45 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-                // nothing to do
+                if (videoHandler.isRunning()) {
+                    Bitmap bmp = textureView.getBitmap();
+                    videoHandler.setBmp(bmp);
+                    videoHandler.sendEmptyMessage(0);
+                }
             }
         });
+
+        HandlerThread thread = new HandlerThread("VideoSender");
+        thread.start();
+        videoHandler = new VideoHandler(thread.getLooper());
+
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+        BluetoothDevice carDevice = null;
+
+        if (pairedDevices.size() > 0) {
+            // There are paired devices. Get the name and address of each paired device.
+            for (BluetoothDevice device : pairedDevices) {
+                if (device.getName().equals("BT04-A")) {
+                    carDevice = device;
+                }
+            }
+        }
+
+        try {
+            BluetoothSocket btSocket = carDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+            btSocket.connect();
+            OutputStream out = btSocket.getOutputStream();
+            if (out != null) {
+                Log.d(TAG, "failed to get output");
+                car = new Car(out);
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "create bluetooth failed");
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -189,31 +227,9 @@ public class MainActivity extends AppCompatActivity {
             texture.setDefaultBufferSize(textureView.getWidth(), textureView.getHeight());
             Surface surface = new Surface(texture);
 
-            ImageReader reader =
-                    ImageReader.newInstance(3456, 4608, ImageFormat.JPEG, 50);
-            reader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(ImageReader reader) {
-                    Image img = reader.acquireNextImage();
-                    if (img != null) {
-                        if (transferVideo) {
-                            try {
-                                Socket s = new Socket(clientAddress, videoPort);
-                                s.getOutputStream().write(img.getPlanes()[0].getBuffer().array());
-                            } catch (IOException e) {
-                                Log.d(TAG, "send img failed");
-                                e.printStackTrace();
-                            }
-                        }
-                        img.close();
-                    }
-                }
-            }, cameraHandler);
-
             previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             previewRequestBuilder.addTarget(surface);
-            previewRequestBuilder.addTarget(reader.getSurface());
-            cameraDevice.createCaptureSession(Arrays.asList(surface, reader.getSurface()),
+            cameraDevice.createCaptureSession(Arrays.asList(surface),
                     new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession session) {
@@ -333,11 +349,64 @@ public class MainActivity extends AppCompatActivity {
             } else if (action.equals("stop")) {
                 activity.stop();
             } else if (action.equals("connectCamera")) {
-                activity.clientAddress = (InetAddress) b.getSerializable("address");
-                activity.transferVideo = true;
+                InetAddress address = (InetAddress) b.getSerializable("address");
+                Log.d(activity.TAG, "connect device: " + address.getHostAddress());
+                activity.videoHandler.setClientAddress(address);
+                activity.videoHandler.setRunning(true);
             } else if (action.equals("disconnectCamera")) {
-                activity.transferVideo = false;
+                Log.d(activity.TAG, "disconnect device");
+                activity.videoHandler.setRunning(false);
             }
+        }
+    }
+
+    private static class VideoHandler extends Handler {
+        private boolean running;
+        private Bitmap bmp;
+        private InetAddress clientAddress;
+
+        VideoHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            if (running) {
+                try {
+                    Socket s = new Socket(clientAddress, videoPort);
+
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+                    baos.flush();
+                    baos.close();
+
+                    OutputStream out = s.getOutputStream();
+                    out.write(baos.toByteArray());
+                    out.flush();
+                    out.close();
+
+                    s.close();
+                } catch (IOException e) {
+                    Log.d(TAG, "send img failed");
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void setRunning(boolean running) {
+            this.running = running;
+        }
+
+        public void setBmp(Bitmap bmp) {
+            this.bmp = bmp;
+        }
+
+        public void setClientAddress(InetAddress clientAddress) {
+            this.clientAddress = clientAddress;
+        }
+
+        public boolean isRunning() {
+            return running;
         }
     }
 }

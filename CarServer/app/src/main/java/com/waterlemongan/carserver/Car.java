@@ -1,27 +1,45 @@
 package com.waterlemongan.carserver;
 
-import com.hoho.android.usbserial.driver.UsbSerialPort;
+import android.bluetooth.BluetoothSocket;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
+import android.util.Log;
 
-import me.zhouzhuo810.okusb.USB;
+import androidx.annotation.NonNull;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.UUID;
 
 class Car {
-    private USB usb;
+    private OutputStream out;
+    private Handler handler;
+    private static final String TAG = "Car";
 
-    Car(MainActivity act) {
-        usb = new USB.USBBuilder(act)
-                .setBaudRate(115200)  //波特率
-                .setDataBits(8)       //数据位
-                .setStopBits(UsbSerialPort.STOPBITS_1) //停止位
-                .setParity(UsbSerialPort.PARITY_NONE)  //校验位
-                .setMaxReadBytes(20)   //接受数据最大长度
-                .setReadDuration(500)  //读数据间隔时间
-                .setDTR(false)    //DTR enable
-                .setRTS(false)    //RTS enable
-                .build();
+    Car(OutputStream out) {
+        this.out = out;
+
+        HandlerThread thread = new HandlerThread("CarBluetooth");
+        thread.start();
+        handler = new Handler(thread.getLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                try {
+                    Car.this.out.write(((String) msg.obj).getBytes());
+                } catch (IOException e) {
+                    Log.d(TAG, "send bt message failed");
+                    e.printStackTrace();
+                }
+            }
+        };
+
     }
 
-    private void write(String msg) {
-        usb.writeData(msg.getBytes(), 500);
+    private void write(String buf) {
+        Message msg = Message.obtain();
+        msg.obj = buf;
+        handler.sendMessage(msg);
     }
 
     public void forward() {
