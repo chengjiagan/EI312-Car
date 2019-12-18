@@ -134,6 +134,13 @@ class CarServer {
 
         public void setRunning(boolean running) {
             this.running = running;
+            if (!running) {
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

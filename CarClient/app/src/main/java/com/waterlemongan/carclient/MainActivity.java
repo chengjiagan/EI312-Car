@@ -1,5 +1,6 @@
 package com.waterlemongan.carclient;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
@@ -19,6 +20,8 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
@@ -31,6 +34,7 @@ import java.net.InetAddress;
 public class MainActivity extends AppCompatActivity {
     private CarServer carServer = null;
     private TextureView textureView;
+    private InetAddress address;
 
     public static final String TAG = "MainActivity";
 
@@ -39,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        InetAddress address = (InetAddress) getIntent().getSerializableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
+        address = (InetAddress) getIntent().getSerializableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
         Log.d(TAG, "device address: " + address.getHostAddress());
         carServer = new CarServer(address);
 
@@ -49,8 +53,38 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-//        carServer.closeVideo();
-//        Log.d(TAG, "close video");
+        carServer.closeVideo();
+        Log.d(TAG, "close video");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.action_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.id.atn_basic:
+                return true;
+
+            case R.id.atn_audio:
+                intent = new Intent(MainActivity.this, AudioActivity.class);
+                intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
+                startActivity(intent);
+                return true;
+
+            case R.id.atn_face:
+                intent = new Intent(MainActivity.this, FaceActivity.class);
+                intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
+                startActivity(intent);
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void initView() {

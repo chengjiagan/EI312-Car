@@ -47,8 +47,8 @@ public class WifiActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wifi);
 
-        deviceList = new ArrayList<WifiP2pDevice>();
-        listView = (ListView) findViewById(R.id.listView);
+        deviceList = new ArrayList<>();
+        listView = findViewById(R.id.listView);
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
 
@@ -64,12 +64,18 @@ public class WifiActivity extends AppCompatActivity {
         });
 
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || checkSelfPermission(Manifest.permission.CHANGE_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+                || checkSelfPermission(Manifest.permission.CHANGE_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.CHANGE_NETWORK_STATE
+                    Manifest.permission.CHANGE_NETWORK_STATE,
+                    Manifest.permission.RECORD_AUDIO
             }, PERMISSIONS_REQUEST_CODE);
         }
+
+//        Intent intent = new Intent(WifiActivity.this, AudioActivity.class);
+//        intent.putExtra(EXTRA_DEVICE_ADDRESS, info.groupOwnerAddress);
+//        startActivity(intent);
     }
 
     private void connect(WifiP2pDevice device) {

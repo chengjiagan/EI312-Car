@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/atn_basic"
+        android:title="Basic"
+        app:showAsAction="collapseActionView|withText" />
+    <item
+        android:id="@+id/atn_audio"
+        android:title="Audio"
+        app:showAsAction="collapseActionView|withText" />
+    <item
+        android:id="@+id/atn_face"
+        android:title="Face"
+        app:showAsAction="collapseActionView|withText" />
+</menu>
