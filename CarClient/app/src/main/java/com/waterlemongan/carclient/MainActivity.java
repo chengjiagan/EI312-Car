@@ -71,13 +71,13 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.atn_audio:
-                intent = new Intent(MainActivity.this, AudioActivity.class);
+                intent = new Intent(this, AudioActivity.class);
                 intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
                 startActivity(intent);
                 return true;
 
             case R.id.atn_face:
-                intent = new Intent(MainActivity.this, FaceActivity.class);
+                intent = new Intent(this, FaceActivity.class);
                 intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
                 startActivity(intent);
                 return true;

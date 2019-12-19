@@ -7,18 +7,14 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-import android.media.Image;
-import android.media.ImageReader;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,8 +24,6 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -44,7 +38,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
@@ -57,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private VideoHandler videoHandler;
     private CameraDevice cameraDevice;
     private TextureView textureView;
-    private CaptureRequest.Builder previewRequestBuilder;
+    private CaptureRequest.Builder requestBuilder;
     private ServerHandler handler = new ServerHandler(this);
 
     private static final int videoPort = 10002;
@@ -227,15 +220,14 @@ public class MainActivity extends AppCompatActivity {
             texture.setDefaultBufferSize(textureView.getWidth(), textureView.getHeight());
             Surface surface = new Surface(texture);
 
-            previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            previewRequestBuilder.addTarget(surface);
+            requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            requestBuilder.addTarget(surface);
             cameraDevice.createCaptureSession(Arrays.asList(surface),
                     new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession session) {
-                            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                            CaptureRequest request = previewRequestBuilder.build();
+                            requestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+                            CaptureRequest request = requestBuilder.build();
                             try {
                                 session.setRepeatingRequest(request, null, cameraHandler);
                             } catch (CameraAccessException e) {

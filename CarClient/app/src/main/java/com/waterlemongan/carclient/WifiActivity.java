@@ -65,17 +65,19 @@ public class WifiActivity extends AppCompatActivity {
 
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 || checkSelfPermission(Manifest.permission.CHANGE_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
-                || checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                || checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.CHANGE_NETWORK_STATE,
-                    Manifest.permission.RECORD_AUDIO
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.CAMERA
             }, PERMISSIONS_REQUEST_CODE);
         }
 
-//        Intent intent = new Intent(WifiActivity.this, AudioActivity.class);
+        Intent intent = new Intent(WifiActivity.this, FaceActivity.class);
 //        intent.putExtra(EXTRA_DEVICE_ADDRESS, info.groupOwnerAddress);
-//        startActivity(intent);
+        startActivity(intent);
     }
 
     private void connect(WifiP2pDevice device) {

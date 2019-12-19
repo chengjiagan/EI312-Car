@@ -8,9 +8,8 @@
 
     <ImageButton
         android:id="@+id/upButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
+        android:layout_width="60dp"
+        android:layout_height="55dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/leftButton"
         app:layout_constraintEnd_toEndOf="parent"
@@ -20,10 +19,8 @@
 
     <ImageButton
         android:id="@+id/leftButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_width="60dp"
+        android:layout_height="55dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/downButton"
         app:layout_constraintEnd_toStartOf="@+id/upButton"
@@ -31,9 +28,8 @@
 
     <ImageButton
         android:id="@+id/rightButtion"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="8dp"
+        android:layout_width="60dp"
+        android:layout_height="55dp"
         android:scaleType="fitCenter"
         app:layout_constraintStart_toEndOf="@+id/upButton"
         app:layout_constraintTop_toTopOf="@+id/leftButton"
@@ -41,8 +37,8 @@
 
     <ImageButton
         android:id="@+id/downButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="60dp"
+        android:layout_height="55dp"
         android:layout_marginBottom="8dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"

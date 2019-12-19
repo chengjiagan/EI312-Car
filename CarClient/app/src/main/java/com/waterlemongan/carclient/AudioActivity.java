@@ -1,13 +1,7 @@
 package com.waterlemongan.carclient;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,22 +11,22 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
 import com.iflytek.cloud.RecognizerListener;
 import com.iflytek.cloud.RecognizerResult;
-import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechUtility;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 
 public class AudioActivity extends AppCompatActivity {
     private ImageButton button;
@@ -97,7 +91,7 @@ public class AudioActivity extends AppCompatActivity {
         Intent intent;
         switch (item.getItemId()) {
             case R.id.atn_basic:
-                intent = new Intent(AudioActivity.this, MainActivity.class);
+                intent = new Intent(this, MainActivity.class);
                 intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
                 startActivity(intent);
                 return true;
@@ -106,7 +100,7 @@ public class AudioActivity extends AppCompatActivity {
                 return true;
 
             case R.id.atn_face:
-                intent = new Intent(AudioActivity.this, FaceActivity.class);
+                intent = new Intent(this, FaceActivity.class);
                 intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
                 startActivity(intent);
                 return true;
