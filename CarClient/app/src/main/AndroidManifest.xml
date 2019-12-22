@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".FaceActivity"></activity>
         <activity android:name=".AudioActivity" />
+        <activity android:name=".TouchActivity" />
         <activity android:name=".WifiActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

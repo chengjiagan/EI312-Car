@@ -1,6 +1,7 @@
 package com.waterlemongan.carserver;
 
 import android.Manifest;
+import android.app.assist.AssistStructure;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -15,6 +16,7 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +24,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
@@ -57,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int controlPort = 10001;
     private static final String TAG = "CarServer";
     private static final int PERMISSIONS_REQUEST_CODE = 2345;
+    private Surface surface;
+    private Size imageDimension;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,6 +187,9 @@ public class MainActivity extends AppCompatActivity {
         String cameraId = Integer.toString(CameraCharacteristics.LENS_FACING_FRONT);
 
         try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
             if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "lack of camera permission");
                 finish();
@@ -217,8 +225,8 @@ public class MainActivity extends AppCompatActivity {
     private void startPreview() {
         try {
             SurfaceTexture texture = textureView.getSurfaceTexture();
-            texture.setDefaultBufferSize(textureView.getWidth(), textureView.getHeight());
-            Surface surface = new Surface(texture);
+            texture.setDefaultBufferSize(imageDimension.getWidth(), imageDimension.getHeight());
+            surface = new Surface(texture);
 
             requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             requestBuilder.addTarget(surface);

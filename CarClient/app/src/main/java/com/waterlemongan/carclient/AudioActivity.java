@@ -45,6 +45,7 @@ public class AudioActivity extends AppCompatActivity {
         address = (InetAddress) getIntent().getSerializableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
         Log.d(TAG, "device address: " + address.getHostAddress());
         carServer = new CarServer(address);
+        carServer.stop();
 
         SpeechUtility.createUtility(AudioActivity.this, "appid=5df0d212");
         mIat = SpeechRecognizer.createRecognizer(this, new InitListener() {

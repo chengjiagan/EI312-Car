@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         address = (InetAddress) getIntent().getSerializableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
         Log.d(TAG, "device address: " + address.getHostAddress());
         carServer = new CarServer(address);
+        carServer.stop();
 
         initView();
     }

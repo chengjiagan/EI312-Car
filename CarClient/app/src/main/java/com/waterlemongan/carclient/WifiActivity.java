@@ -75,9 +75,8 @@ public class WifiActivity extends AppCompatActivity {
             }, PERMISSIONS_REQUEST_CODE);
         }
 
-        Intent intent = new Intent(WifiActivity.this, FaceActivity.class);
-//        intent.putExtra(EXTRA_DEVICE_ADDRESS, info.groupOwnerAddress);
-        startActivity(intent);
+//        Intent intent = new Intent(WifiActivity.this, TouchActivity.class);
+//        startActivity(intent);
     }
 
     private void connect(WifiP2pDevice device) {

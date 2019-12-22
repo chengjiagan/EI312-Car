@@ -81,6 +81,7 @@ public class FaceActivity extends AppCompatActivity {
         address = (InetAddress) getIntent().getSerializableExtra(WifiActivity.EXTRA_DEVICE_ADDRESS);
         Log.d(TAG, "device address: " + address.getHostAddress());
         carServer = new CarServer(address);
+        carServer.stop();
 
         HandlerThread thread = new HandlerThread("FaceActivity/Camera");
         thread.start();
@@ -256,8 +257,8 @@ public class FaceActivity extends AppCompatActivity {
             int code = json.getInt("code");
             if (code != 0) {
                 // no human
-                Log.d(TAG, "backward");
-                carServer.backward();
+                Log.d(TAG, "stop");
+                carServer.stop();
             } else {
                 JSONArray fileList = json.getJSONObject("data").getJSONArray("fileList");
                 boolean review = fileList.getJSONObject(0).getBoolean("review");
@@ -267,8 +268,8 @@ public class FaceActivity extends AppCompatActivity {
                 carServer.forward();
                 } else {
                     // smile
-                    Log.d(TAG, "stop");
-                carServer.stop();
+                    Log.d(TAG, "backward");
+                carServer.backward();
                 }
             }
         } catch (JSONException e) {
@@ -312,7 +313,7 @@ public class FaceActivity extends AppCompatActivity {
             out.flush();
             out.close();
             if (HttpURLConnection.HTTP_OK != httpURLConnection.getResponseCode()) {
-                System.out.println("Http 请求失败，状态码：" + httpURLConnection.getResponseCode());
+                System.out.println("http connection failed：" + httpURLConnection.getResponseCode());
                 return null;
             }
 
