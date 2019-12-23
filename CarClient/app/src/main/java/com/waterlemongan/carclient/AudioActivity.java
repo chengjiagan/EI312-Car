@@ -106,6 +106,12 @@ public class AudioActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
 
+            case R.id.atn_touch:
+                intent = new Intent(this, TouchActivity.class);
+                intent.putExtra(WifiActivity.EXTRA_DEVICE_ADDRESS, address);
+                startActivity(intent);
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }

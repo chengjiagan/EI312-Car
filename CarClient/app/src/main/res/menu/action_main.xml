@@ -14,4 +14,7 @@
         android:id="@+id/atn_face"
         android:title="Face"
         app:showAsAction="collapseActionView|withText" />
+    <item
+        android:id="@+id/atn_touch"
+        android:title="Touch" />
 </menu>
